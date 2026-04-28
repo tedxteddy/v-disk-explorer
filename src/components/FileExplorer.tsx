@@ -1,19 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  collection, 
-  onSnapshot, 
-  query, 
-  where, 
-  orderBy, 
-  addDoc, 
-  deleteDoc, 
-  updateDoc,
-  doc, 
-  serverTimestamp
-} from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { VirtualFile, VirtualFolder, FileType, OperationType, AppSettings } from '../types';
-import { handleFirestoreError, formatBytes } from '../utils';
+import { VirtualFile, VirtualFolder, FileType } from '../types';
+import { formatBytes } from '../utils';
 import { 
   Folder, 
   File, 
@@ -21,25 +8,20 @@ import {
   Video, 
   Archive, 
   Trash2, 
-  ChevronRight, 
   Home,
   Search,
   Upload,
   FolderPlus,
   Disc,
-  Activity,
   Cpu,
   Share2,
-  Edit3,
-  Filter,
-  Calendar,
-  Maximize2,
-  ChevronDown
+  Filter
 } from 'lucide-react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils';
 import { ShareModal } from './ShareModal';
 import { ContextMenu } from './ContextMenu';
+import { getFiles, saveFile, updateFile, deleteFile, getFolders, saveFolder, updateFolder, deleteFolder } from '../localStorage';
 
 interface FileExplorerProps {
   onFileSelect: (file: VirtualFile) => void;
@@ -58,116 +40,56 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
   const [shareItem, setShareItem] = useState<VirtualFile | VirtualFolder | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: VirtualFile | VirtualFolder } | null>(null);
   const [renamingItem, setRenamingItem] = useState<{ id: string, name: string, type: 'file' | 'folder' } | null>(null);
-  
-  // Advanced Filtering State
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterType, setFilterType] = useState<FileType | 'all'>('all');
   const [filterSize, setFilterSize] = useState<'all' | 'small' | 'medium' | 'large'>('all');
   const [filterDate, setFilterDate] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [isDragging, setIsDragging] = useState(false);
 
-  const userId = auth.currentUser?.uid;
-
   useEffect(() => {
-    if (!userId) return;
+    loadData();
+  }, []);
 
-    // We query ALL files and folders for the user to support global real-time search
-    // But we filter them locally for the current view
-    const filesPath = `users/${userId}/files`;
-    const filesQuery = query(collection(db, filesPath), orderBy('createdAt', 'desc'));
-
-    const unsubscribeFiles = onSnapshot(filesQuery, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VirtualFile));
-      setFiles(docs);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, filesPath);
-    });
-
-    const foldersPath = `users/${userId}/folders`;
-    const foldersQuery = query(collection(db, foldersPath), orderBy('createdAt', 'desc'));
-
-    const unsubscribeFolders = onSnapshot(foldersQuery, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as VirtualFolder));
-      setFolders(docs);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, foldersPath);
-    });
-
-    return () => {
-      unsubscribeFiles();
-      unsubscribeFolders();
-    };
-  }, [userId]);
-
-  const handleMoveFile = async (fileId: string, targetFolderId: string | null) => {
-    if (!userId) return;
-    const path = `users/${userId}/files/${fileId}`;
-    try {
-      await updateDoc(doc(db, path), {
-        parentId: targetFolderId,
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, path);
-    }
+  const loadData = () => {
+    setFiles(getFiles());
+    setFolders(getFolders());
   };
 
-  const handleCreateFolder = async (e: React.FormEvent) => {
+  const handleCreateFolder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId || !newFolderName.trim()) return;
+    if (!newFolderName.trim()) return;
 
-    const path = `users/${userId}/folders`;
-    try {
-      await addDoc(collection(db, path), {
-        name: newFolderName,
-        parentId: currentFolderId,
-        ownerId: userId,
-        ownerName: auth.currentUser?.displayName || 'Anonymous User',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      setNewFolderName('');
-      setIsAddingFolder(false);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
+    saveFolder({
+      name: newFolderName,
+      parentId: currentFolderId,
+      ownerId: 'local',
+      ownerName: 'Local User'
+    });
+    setNewFolderName('');
+    setIsAddingFolder(false);
+    loadData();
   };
 
-  const handleDeleteFile = async (id: string) => {
-    if (!userId) return;
-    const path = `users/${userId}/files/${id}`;
-    try {
-      await deleteDoc(doc(db, path));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, path);
-    }
+  const handleDeleteFile = (id: string) => {
+    deleteFile(id);
+    loadData();
   };
 
-  const handleDeleteFolder = async (id: string) => {
-    if (!userId) return;
-    const path = `users/${userId}/folders/${id}`;
-    try {
-      await deleteDoc(doc(db, path));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, path);
-    }
+  const handleDeleteFolder = (id: string) => {
+    deleteFolder(id);
+    loadData();
   };
 
-  const handleRename = async () => {
-    if (!userId || !renamingItem || !renamingItem.name.trim()) return;
+  const handleRename = () => {
+    if (!renamingItem || !renamingItem.name.trim()) return;
     
-    const collectionName = renamingItem.type === 'file' ? 'files' : 'folders';
-    const path = `users/${userId}/${collectionName}/${renamingItem.id}`;
-    
-    try {
-      await updateDoc(doc(db, path), {
-        name: renamingItem.name,
-        updatedAt: serverTimestamp()
-      });
-      setRenamingItem(null);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, path);
+    if (renamingItem.type === 'file') {
+      updateFile(renamingItem.id, { name: renamingItem.name });
+    } else {
+      updateFolder(renamingItem.id, { name: renamingItem.name });
     }
+    setRenamingItem(null);
+    loadData();
   };
 
   const handleContextMenu = (e: React.MouseEvent, item: VirtualFile | VirtualFolder) => {
@@ -176,7 +98,7 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
   };
 
   const navigateToFolder = (folder: VirtualFolder | null) => {
-    setSearchQuery(''); // Reset search on navigate
+    setSearchQuery('');
     if (!folder) {
       setCurrentFolderId(null);
       setBreadcrumb([{ id: null, name: 'Root' }]);
@@ -200,19 +122,13 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
     }
   };
 
-  // Filter logic: 
-  // If searching: global search across all files/folders
-  // If not searching: only items in the current folder
   const filterFiles = (fileList: VirtualFile[]) => {
     return fileList.filter(f => {
-      // Search matching
       const matchesSearch = searchQuery ? f.name.toLowerCase().includes(searchQuery.toLowerCase()) : (f.parentId === currentFolderId);
       if (!matchesSearch) return false;
 
-      // Type matching
       if (filterType !== 'all' && f.type !== filterType) return false;
 
-      // Size matching
       if (filterSize !== 'all') {
         const sizeMB = f.size / (1024 * 1024);
         if (filterSize === 'small' && sizeMB > 1) return false;
@@ -220,9 +136,8 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
         if (filterSize === 'large' && sizeMB <= 10) return false;
       }
 
-      // Date matching
       if (filterDate !== 'all') {
-        const fileDate = f.createdAt?.toDate ? f.createdAt.toDate().getTime() : 0;
+        const fileDate = f.createdAt ? new Date(f.createdAt).getTime() : 0;
         const now = Date.now();
         const oneDay = 24 * 60 * 60 * 1000;
         if (filterDate === 'today' && now - fileDate > oneDay) return false;
@@ -240,28 +155,21 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
     ? folders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : folders.filter(f => f.parentId === currentFolderId);
 
-  const addFileToDisk = async (name: string, type: FileType, size: number, url: string) => {
-    if (!userId) return;
-    const path = `users/${userId}/files`;
-    try {
-      await addDoc(collection(db, path), {
-        name,
-        type,
-        size,
-        url,
-        parentId: currentFolderId,
-        ownerId: userId,
-        ownerName: auth.currentUser?.displayName || 'Anonymous User',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        permissions: ['owner', 'read', 'write', 'delete']
-      });
-    } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, path);
-    }
+  const addFileToDisk = (name: string, type: FileType, size: number, url: string) => {
+    saveFile({
+      name,
+      type,
+      size,
+      url,
+      parentId: currentFolderId,
+      ownerId: 'local',
+      ownerName: 'Local User',
+      permissions: ['owner', 'read', 'write', 'delete']
+    });
+    loadData();
   };
 
-  const handleRandomUpload = async () => {
+  const handleRandomUpload = () => {
     const randomTypes: FileType[] = ['image', 'video', 'zip', 'other'];
     const type = randomTypes[Math.floor(Math.random() * randomTypes.length)];
     const names = {
@@ -275,10 +183,10 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
       ? `https://picsum.photos/seed/${Math.random().toString(36)}/800/600`
       : 'https://example.com/mock-file-' + Math.random().toString(36);
     
-    await addFileToDisk(name, type, Math.floor(Math.random() * 50000000), url);
+    addFileToDisk(name, type, Math.floor(Math.random() * 50000000), url);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -288,7 +196,7 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
     else if (file.type.includes('zip') || file.name.endsWith('.zip')) type = 'zip';
 
     const url = URL.createObjectURL(file);
-    await addFileToDisk(file.name, type, file.size, url);
+    addFileToDisk(file.name, type, file.size, url);
     e.target.value = '';
   };
 
@@ -319,18 +227,17 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
       else if (file.type.includes('zip') || file.name.endsWith('.zip')) type = 'zip';
 
       const url = URL.createObjectURL(file);
-      await addFileToDisk(file.name, type, file.size, url);
+      addFileToDisk(file.name, type, file.size, url);
     }
   };
 
   return (
     <div className="flex flex-col h-full bg-hw-bg text-hw-text font-mono selection:bg-hw-primary/30">
-      {/* Hardware Top Bar */}
       <div className="p-4 border-b border-hw-border flex items-center justify-between bg-hw-surface-light shadow-[0_4px_20px_rgba(0,0,0,0.3)] z-20">
         <div className="flex items-center gap-6 flex-1">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-black/20 rounded border border-hw-border">
-            <Activity className="w-3.5 h-3.5 text-hw-accent animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-hw-accent/80">System.Live</span>
+            <Disc className="w-3.5 h-3.5 text-hw-accent animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-hw-accent/80">Local.Storage</span>
           </div>
           
           <div className="relative flex-1 max-w-md group">
@@ -390,7 +297,6 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
         </div>
       </div>
 
-      {/* Breadcrumb / Path */}
       <div className="px-6 py-3 bg-[#0D0E10] border-b border-hw-border flex items-center justify-between text-[9px] font-bold tracking-[0.2em] text-hw-text-dim uppercase">
         <div className="flex items-center gap-2">
           <Home className="w-3 h-3" />
@@ -418,85 +324,8 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
             )}
           </div>
         </div>
-        
-        <AnimatePresence>
-          {isFilterOpen && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="absolute top-full left-0 right-0 bg-hw-surface border-b border-hw-border-bold z-10 px-6 py-4 flex flex-wrap gap-8 items-center shadow-xl overflow-hidden"
-            >
-              <div className="space-y-2">
-                <span className="text-[7px] text-hw-text-dim tracking-[0.3em]">Data_Type</span>
-                <div className="flex gap-2">
-                  {['all', 'image', 'video', 'zip', 'other'].map(t => (
-                    <button 
-                      key={t}
-                      onClick={() => setFilterType(t as any)}
-                      className={cn(
-                        "px-2 py-1 rounded text-[8px] border transition-all",
-                        filterType === t ? "bg-hw-primary/20 border-hw-primary text-hw-primary" : "border-hw-border text-hw-text-dim hover:text-white hover:border-hw-border-bold"
-                      )}
-                    >
-                      {t.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-[7px] text-hw-text-dim tracking-[0.3em]">Block_Size</span>
-                <div className="flex gap-2">
-                  {['all', 'small', 'medium', 'large'].map(s => (
-                    <button 
-                      key={s}
-                      onClick={() => setFilterSize(s as any)}
-                      className={cn(
-                        "px-2 py-1 rounded text-[8px] border transition-all",
-                        filterSize === s ? "bg-hw-primary/20 border-hw-primary text-hw-primary" : "border-hw-border text-hw-text-dim hover:text-white hover:border-hw-border-bold"
-                      )}
-                    >
-                      {s === 'all' ? 'ANY' : s === 'small' ? '< 1MB' : s === 'medium' ? '1-10MB' : '> 10MB'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <span className="text-[7px] text-hw-text-dim tracking-[0.3em]">Last_Refresh</span>
-                <div className="flex gap-2">
-                  {['all', 'today', 'week', 'month'].map(d => (
-                    <button 
-                      key={d}
-                      onClick={() => setFilterDate(d as any)}
-                      className={cn(
-                        "px-2 py-1 rounded text-[8px] border transition-all",
-                        filterDate === d ? "bg-hw-primary/20 border-hw-primary text-hw-primary" : "border-hw-border text-hw-text-dim hover:text-white hover:border-hw-border-bold"
-                      )}
-                    >
-                      {d.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button 
-                onClick={() => {
-                  setFilterType('all');
-                  setFilterSize('all');
-                  setFilterDate('all');
-                }}
-                className="ml-auto text-[7px] text-hw-accent hover:underline lowercase italic tracking-normal"
-              >
-                reset_filters
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
-      {/* Main Grid with Hardware Aesthetic */}
       <div 
         className="flex-1 overflow-auto p-8 relative"
         onDragOver={handleDragOver}
@@ -515,14 +344,9 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
                 <Upload className="w-16 h-16 text-hw-primary animate-bounce" />
               </div>
               <h2 className="text-2xl font-black uppercase tracking-[0.4em] text-white drop-shadow-2xl">Drop to Allocate</h2>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-hw-primary mt-2">Initializing Direct Memory Access</p>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Background Grid Lines */}
-        <div className="absolute inset-0 pointer-events-none opacity-5" 
-             style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '100px 100px' }} />
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 relative z-10">
           <AnimatePresence mode="popLayout">
@@ -612,27 +436,6 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
                 key={file.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.1}
-                dragMomentum={false}
-                onDragEnd={(event, info) => {
-                  const x = info.point.x;
-                  const y = info.point.y;
-                  const allFolderElements = Array.from(document.querySelectorAll('.group[onClick]'));
-                  const targetFolderElement = allFolderElements.find(el => {
-                    const rect = el.getBoundingClientRect();
-                    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-                  });
-
-                  if (targetFolderElement) {
-                    const folderName = targetFolderElement.querySelector('p')?.textContent;
-                    const folder = folders.find(f => f.name === folderName);
-                    if (folder && folder.id !== file.parentId) {
-                      handleMoveFile(file.id, folder.id);
-                    }
-                  }
-                }}
                 whileHover={{ scale: 1.02, y: -4 }}
                 className="group relative cursor-pointer z-10"
                 onClick={() => onFileSelect(file)}
@@ -745,23 +548,17 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
             onAnalyze={() => {
               if ('type' in contextMenu.item && contextMenu.item.type === 'image') {
                 onFileSelect(contextMenu.item as VirtualFile);
-                // The analysis sidebar will open and we could potentially trigger it automatically
               }
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* Hardware Status Bar */}
       <div className="px-6 py-2 bg-hw-bg border-t border-hw-border flex items-center justify-between text-[8px] font-black uppercase tracking-[0.3em] text-hw-text-dim">
         <div className="flex gap-10">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-hw-accent animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.4)]" />
-            <span className="text-white/60">Sect_Connection.Active</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="opacity-40">Temp:</span>
-            <span className="text-white/40">38.4°C</span>
+            <span className="text-white/60">Local.Storage.Active</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="opacity-40">Allocated:</span>
@@ -769,17 +566,7 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex gap-1">
-            {[...Array(12)].map((_, i) => (
-              <motion.div 
-                key={i} 
-                animate={{ opacity: [0.1, 1, 0.1] }}
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
-                className={cn("w-0.5 h-2.5", i < 4 ? "bg-hw-primary" : "bg-white/5")} 
-              />
-            ))}
-          </div>
-          <span className="text-[7px] tracking-[0.5em] opacity-40">V-DISK.OS_v1.0.4</span>
+          <span className="text-[7px] tracking-[0.5em] opacity-40">V-DISK.LOCAL_v1.0.0</span>
         </div>
       </div>
     </div>
