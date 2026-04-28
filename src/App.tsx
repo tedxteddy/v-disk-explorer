@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { FileExplorer } from './components/FileExplorer';
 import { DiskLanding } from './components/DiskLanding';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { VirtualFile } from './types';
+import { ImageAnalysis } from './components/ImageAnalysis';
+import { DemoChat } from './components/DemoChat';
+import { Settings } from './components/Settings';
+import { Footer } from './components/Footer';
+import { VirtualFile, AppSettings } from './types';
 import { cn } from './utils';
 import { 
   Disc, 
@@ -11,16 +15,38 @@ import {
   Cpu,
   Sun,
   Moon,
-  Settings
+  Settings,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [selectedFile, setSelectedFile] = useState<VirtualFile | null>(null);
-  const [activeTab, setActiveTab] = useState<'explorer'>('explorer');
+  const [activeTab, setActiveTab] = useState<'explorer' | 'chat' | 'settings'>('explorer');
   const [hasEntered, setHasEntered] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [isReady, setIsReady] = useState(true);
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const saved = localStorage.getItem('vdisk-settings');
+    return saved ? JSON.parse(saved) : {
+      privateMode: false,
+      hideMetadata: false,
+      demoChatEnabled: true,
+      notificationCatchEnabled: false,
+      autoReplyEnabled: true,
+      storageLimitMB: 100
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('vdisk-settings', JSON.stringify(settings));
+  }, [settings]);
+
+  const handleClearStorage = () => {
+    localStorage.removeItem('vdisk-files');
+    localStorage.removeItem('vdisk-demo-messages');
+    window.location.reload();
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('vdisk-theme') as 'dark' | 'light';
@@ -80,24 +106,31 @@ export default function App() {
               <HardDrive className="w-3 h-3 opacity-30" />
             </div>
 
-            <button 
-              onClick={() => setActiveTab('explorer')}
-              className={cn(
-                "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all relative group",
-                activeTab === 'explorer' 
-                  ? "bg-hw-primary text-white shadow-[0_0_25px_rgba(234,88,12,0.3)]" 
-                  : "text-hw-text-dim hover:text-white hover:bg-white/5"
-              )}
-            >
-              <Grid className={cn("w-5 h-5", activeTab === 'explorer' ? "animate-pulse" : "opacity-40 group-hover:opacity-100")} />
-              <span className="hidden lg:inline text-[10px] font-black uppercase tracking-[0.2em]">Sector.Explorer</span>
-              {activeTab === 'explorer' && (
-                <motion.div 
-                  layoutId="sidebar-indicator"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full" 
-                />
-              )}
-            </button>
+            {[
+              { id: 'explorer', icon: Grid, label: 'Sector.Explorer' },
+              { id: 'chat', icon: MessageSquare, label: 'Demo Chat' },
+              { id: 'settings', icon: Settings, label: 'Settings' }
+            ].map(item => (
+              <button 
+                key={item.id}
+                onClick={() => setActiveTab(item.id as any)}
+                className={cn(
+                  "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all relative group",
+                  activeTab === item.id 
+                    ? "bg-hw-primary text-white shadow-[0_0_25px_rgba(234,88,12,0.3)]" 
+                    : "text-hw-text-dim hover:text-white hover:bg-white/5"
+                )}
+              >
+                <item.icon className={cn("w-5 h-5", activeTab === item.id ? "animate-pulse" : "opacity-40 group-hover:opacity-100")} />
+                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-[0.2em]">{item.label}</span>
+                {activeTab === item.id && (
+                  <motion.div 
+                    layoutId="sidebar-indicator"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full" 
+                  />
+                )}
+              </button>
+            ))}
 
             <div className="pt-6 mt-6 border-t border-hw-border space-y-4">
               <div className="px-3 hidden lg:block">
@@ -106,11 +139,6 @@ export default function App() {
                   <span className="text-hw-primary">LOCAL</span>
                 </div>
               </div>
-
-              <button className="w-full flex items-center gap-4 px-4 py-3 text-hw-text-dim grayscale opacity-20 cursor-not-allowed">
-                <Settings className="w-5 h-5" />
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest">Config</span>
-              </button>
 
               <button 
                 onClick={toggleTheme}
@@ -129,17 +157,45 @@ export default function App() {
           
           <div className="flex-1 flex flex-col min-w-0 relative z-10">
             <AnimatePresence mode="wait">
-              <motion.div 
-                key="explorer"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="flex-1 overflow-hidden"
-              >
-                <FileExplorer onFileSelect={setSelectedFile} />
-              </motion.div>
+              {activeTab === 'explorer' ? (
+                <motion.div 
+                  key="explorer"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="flex-1 overflow-hidden"
+                >
+                  <FileExplorer onFileSelect={setSelectedFile} />
+                </motion.div>
+              ) : activeTab === 'chat' ? (
+                <motion.div 
+                  key="chat"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 overflow-hidden h-full"
+                >
+                  <DemoChat autoReplyEnabled={settings.autoReplyEnabled} />
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="settings"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 overflow-hidden h-full"
+                >
+                  <Settings 
+                    settings={settings} 
+                    onSettingsChange={setSettings}
+                    onClearStorage={handleClearStorage}
+                  />
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
+
+          <Footer />
 
           <AnimatePresence>
             {selectedFile && (
@@ -154,5 +210,3 @@ export default function App() {
     </ErrorBoundary>
   );
 }
-
-import { ImageAnalysis } from './components/ImageAnalysis';

@@ -43,6 +43,23 @@ export interface ChatMessage {
   timestamp?: string;
 }
 
+export interface DemoMessage {
+  id: string;
+  sender: 'user' | 'system';
+  content: string;
+  timestamp: number;
+  simulated: boolean;
+}
+
+export interface AppSettings {
+  privateMode: boolean;
+  hideMetadata: boolean;
+  demoChatEnabled: boolean;
+  notificationCatchEnabled: boolean;
+  autoReplyEnabled: boolean;
+  storageLimitMB: number;
+}
+
 export interface FileComment {
   id: string;
   userId: string;
