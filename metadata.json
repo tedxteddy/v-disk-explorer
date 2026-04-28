@@ -1,0 +1,6 @@
+{
+  "name": "V-Disk Explorer",
+  "description": "A virtual hard disk explorer with integrated Gemini AI for file classification, content analysis, and intelligent chat support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

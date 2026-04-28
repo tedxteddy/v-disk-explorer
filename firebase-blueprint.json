@@ -1,0 +1,99 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "VirtualFile": {
+      "title": "VirtualFile",
+      "description": "Metadata for a virtual file",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["image", "video", "zip", "other"] },
+        "size": { "type": "number" },
+        "url": { "type": "string" },
+        "parentId": { "type": ["string", "null"] },
+        "ownerId": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "permissions": { "type": "array", "items": { "type": "string" } },
+        "sharedWith": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": { "type": "string" },
+              "email": { "type": "string" },
+              "role": { "type": "string", "enum": ["viewer", "editor"] }
+            }
+          }
+        }
+      },
+      "required": ["name", "type", "size", "url", "ownerId"]
+    },
+    "VirtualFolder": {
+      "title": "VirtualFolder",
+      "description": "Metadata for a virtual folder",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "parentId": { "type": ["string", "null"] },
+        "ownerId": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "sharedWith": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "userId": { "type": "string" },
+              "email": { "type": "string" },
+              "role": { "type": "string", "enum": ["viewer", "editor"] }
+            }
+          }
+        }
+      },
+      "required": ["name", "ownerId"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Message in the AI assistant conversation",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["user", "model"] },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["role", "content"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Individual user profiles"
+    },
+    "/users/{userId}/files/{fileId}": {
+      "schema": "VirtualFile",
+      "description": "Virtual files owned by the user"
+    },
+    "/users/{userId}/folders/{folderId}": {
+      "schema": "VirtualFolder",
+      "description": "Virtual folders owned by the user"
+    },
+    "/users/{userId}/chatHistory/{chatId}": {
+      "schema": "ChatMessage",
+      "description": "AI chat history for the user"
+    }
+  }
+}
