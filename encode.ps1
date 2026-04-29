@@ -1,0 +1,1 @@
+[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String((Get-Content 'C:\Users\TASHMOI DEY\opencode\v-disk-explorer\profile-readme.md' -Raw)))
