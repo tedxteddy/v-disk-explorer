@@ -99,3 +99,48 @@
 .markdown-body ul {
   @apply list-disc list-inside space-y-1 text-hw-text-dim;
 }
+
+/* Responsive Breakpoints */
+@media (max-width: 640px) {
+  .sm\:text-xs { font-size: 0.75rem; }
+  .sm\:p-2 { padding: 0.5rem; }
+  .sm\:gap-2 { gap: 0.5rem; }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .md\:text-sm { font-size: 0.875rem; }
+  .md\:p-4 { padding: 1rem; }
+  .md\:gap-4 { gap: 1rem; }
+}
+
+@media (min-width: 1025px) {
+  .lg\:text-base { font-size: 1rem; }
+  .lg\:p-6 { padding: 1.5rem; }
+  .lg\:gap-6 { gap: 1.5rem; }
+}
+
+/* Touch-friendly mobile controls */
+@media (hover: none) and (max-width: 768px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .hw-input {
+    font-size: 16px;
+  }
+}
+
+/* Tablet optimization */
+@media (min-width: 768px) and (max-width: 1024px) {
+  aside {
+    width: 80px;
+  }
+}
+
+/* PC optimization */
+@media (min-width: 1025px) {
+  aside {
+    width: 256px;
+  }
+}
