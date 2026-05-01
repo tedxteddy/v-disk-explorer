@@ -8,16 +8,7 @@ import { Settings } from './components/Settings';
 import { Footer } from './components/Footer';
 import { VirtualFile, AppSettings } from './types';
 import { cn } from './utils';
-import { 
-  Disc, 
-  Grid, 
-  HardDrive, 
-  Cpu,
-  Sun,
-  Moon,
-  Settings,
-  MessageSquare
-} from 'lucide-react';
+import { Disc, Grid, HardDrive, Cpu, Sun, Moon, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -34,7 +25,9 @@ export default function App() {
       demoChatEnabled: true,
       notificationCatchEnabled: false,
       autoReplyEnabled: true,
-      storageLimitMB: 100
+      storageLimitMB: 100,
+      cacheEnabled: true,
+      randomModeEnabled: false
     };
   });
 
@@ -44,7 +37,8 @@ export default function App() {
 
   const handleClearStorage = () => {
     localStorage.removeItem('vdisk-files');
-    localStorage.removeItem('vdisk-demo-messages');
+    localStorage.removeItem('vdisk-folders');
+    localStorage.removeItem('vdisk-chat');
     window.location.reload();
   };
 
@@ -109,7 +103,7 @@ export default function App() {
             {[
               { id: 'explorer', icon: Grid, label: 'Sector.Explorer' },
               { id: 'chat', icon: MessageSquare, label: 'Demo Chat' },
-              { id: 'settings', icon: Settings, label: 'Settings' }
+              { id: 'settings', icon: SettingsIcon, label: 'Settings' }
             ].map(item => (
               <button 
                 key={item.id}

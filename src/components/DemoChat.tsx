@@ -55,7 +55,7 @@ const INITIAL_MESSAGES: DemoMessage[] = [
 
 export function DemoChat({ autoReplyEnabled }: DemoChatProps) {
   const [messages, setMessages] = useState<DemoMessage[]>(() => {
-    const saved = localStorage.getItem('vdisk-demo-messages');
+    const saved = localStorage.getItem('vdisk-chat');
     return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
   });
   const [input, setInput] = useState('');
@@ -63,7 +63,7 @@ export function DemoChat({ autoReplyEnabled }: DemoChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    localStorage.setItem('vdisk-demo-messages', JSON.stringify(messages));
+    localStorage.setItem('vdisk-chat', JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
@@ -107,7 +107,7 @@ export function DemoChat({ autoReplyEnabled }: DemoChatProps) {
 
   const clearHistory = () => {
     setMessages(INITIAL_MESSAGES);
-    localStorage.removeItem('vdisk-demo-messages');
+    localStorage.removeItem('vdisk-chat');
   };
 
   return (

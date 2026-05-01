@@ -1,9 +1,9 @@
 import { VirtualFile, VirtualFolder, ChatMessage } from './types';
 
 const STORAGE_KEYS = {
-  FILES: 'vdisk_files',
-  FOLDERS: 'vdisk_folders',
-  CHAT: 'vdisk_chat'
+  FILES: 'vdisk-files',
+  FOLDERS: 'vdisk-folders',
+  CHAT: 'vdisk-chat'
 };
 
 export function generateId(): string {

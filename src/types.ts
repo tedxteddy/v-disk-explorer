@@ -58,6 +58,8 @@ export interface AppSettings {
   notificationCatchEnabled: boolean;
   autoReplyEnabled: boolean;
   storageLimitMB: number;
+  cacheEnabled: boolean;
+  randomModeEnabled: boolean;
 }
 
 export interface FileComment {
