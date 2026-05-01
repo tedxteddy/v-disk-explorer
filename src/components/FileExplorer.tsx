@@ -233,26 +233,26 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
 
   return (
     <div className="flex flex-col h-full bg-hw-bg text-hw-text font-mono selection:bg-hw-primary/30">
-      <div className="p-4 border-b border-hw-border flex items-center justify-between bg-hw-surface-light shadow-[0_4px_20px_rgba(0,0,0,0.3)] z-20">
-        <div className="flex items-center gap-6 flex-1">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-black/20 rounded border border-hw-border">
-            <Disc className="w-3.5 h-3.5 text-hw-accent animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-hw-accent/80">Local.Storage</span>
+      <div className="p-3 sm:p-4 border-b border-hw-border flex flex-col lg:flex-row items-start lg:items-center justify-between bg-hw-surface-light shadow-[0_4px_20px_rgba(0,0,0,0.3)] z-20 gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 w-full lg:w-auto">
+          <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 bg-black/20 rounded border border-hw-border shrink-0">
+            <Disc className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-hw-accent animate-pulse" />
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-hw-accent/80 hidden sm:inline">Local.Storage</span>
           </div>
           
-          <div className="relative flex-1 max-w-md group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 opacity-20 group-focus-within:opacity-100 group-focus-within:text-hw-primary transition-all" />
+          <div className="relative flex-1 min-w-0 group">
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 opacity-20 group-focus-within:opacity-100 group-focus-within:text-hw-primary transition-all" />
             <input
               type="text"
-              placeholder="Query memory sectors..."
-              className="w-full pl-10 pr-12 py-2 bg-black/40 border border-hw-border rounded text-[10px] font-bold focus:outline-none focus:border-hw-primary/50 transition-all uppercase placeholder:text-white/10"
+              placeholder="Query sectors..."
+              className="w-full pl-8 sm:pl-10 pr-10 sm:pr-12 py-2 bg-black/40 border border-hw-border rounded text-[10px] sm:text-[10px] font-bold focus:outline-none focus:border-hw-primary/50 transition-all uppercase placeholder:text-white/10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <button 
               onClick={() => setIsFilterOpen(!isFilterOpen)}
               className={cn(
-                "absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded transition-colors",
+                "absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 p-1 rounded transition-colors",
                 isFilterOpen || filterType !== 'all' || filterSize !== 'all' || filterDate !== 'all' ? "text-hw-primary bg-hw-primary/10" : "text-hw-text-dim hover:text-white"
               )}
             >
@@ -261,8 +261,8 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 ml-6">
-          <div className="flex items-center gap-2 p-1 bg-black/20 rounded border border-hw-border">
+        <div className="flex items-center gap-2 sm:gap-3 w-full lg:w-auto">
+          <div className="flex items-center gap-1 sm:gap-2 p-1 bg-black/20 rounded border border-hw-border">
             <input 
               type="file" 
               id="file-upload" 
@@ -271,28 +271,28 @@ export function FileExplorer({ onFileSelect }: FileExplorerProps) {
             />
             <button 
               onClick={() => document.getElementById('file-upload')?.click()}
-              className="hw-button flex items-center gap-2 bg-transparent border-none hover:bg-white/5"
+              className="hw-button flex items-center gap-1.5 sm:gap-2 bg-transparent border-none hover:bg-white/5 px-2 sm:px-3"
               title="Upload to Sector"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span className="hidden lg:inline">Upload</span>
+              <span className="hidden sm:inline text-[9px] sm:text-[10px]">Upload</span>
             </button>
             <button 
               onClick={handleRandomUpload}
-              className="hw-button flex items-center gap-2 bg-transparent border-none hover:bg-white/5"
+              className="hw-button flex items-center gap-1.5 sm:gap-2 bg-transparent border-none hover:bg-white/5 px-2 sm:px-3"
               title="Allocate Random Block"
             >
               <Disc className="w-3.5 h-3.5 animate-spin-slow" />
-              <span className="hidden lg:inline">Random</span>
+              <span className="hidden sm:inline text-[9px] sm:text-[10px]">Random</span>
             </button>
           </div>
 
           <button 
             onClick={() => setIsAddingFolder(true)}
-            className="hw-button hw-button-primary flex items-center gap-2"
+            className="hw-button hw-button-primary flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3"
           >
             <FolderPlus className="w-3.5 h-3.5" />
-            <span>New Dir</span>
+            <span className="text-[9px] sm:text-[10px]">New Dir</span>
           </button>
         </div>
       </div>

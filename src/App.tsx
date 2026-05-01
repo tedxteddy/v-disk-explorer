@@ -8,7 +8,7 @@ import { Settings } from './components/Settings';
 import { Footer } from './components/Footer';
 import { VirtualFile, AppSettings } from './types';
 import { cn } from './utils';
-import { Disc, Grid, HardDrive, Cpu, Sun, Moon, Settings as SettingsIcon, MessageSquare } from 'lucide-react';
+import { Disc, Grid, HardDrive, Cpu, Sun, Moon, Settings as SettingsIcon, MessageSquare, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -17,6 +17,7 @@ export default function App() {
   const [hasEntered, setHasEntered] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [isReady, setIsReady] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('vdisk-settings');
     return saved ? JSON.parse(saved) : {
@@ -82,124 +83,165 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-screen bg-hw-bg text-hw-text font-mono overflow-hidden">
-        <aside className="w-16 lg:w-64 bg-hw-surface border-r border-hw-border flex flex-col z-30 shadow-[4px_0_30px_rgba(0,0,0,0.5)]">
-          <div className="p-6 mb-8 cursor-pointer group flex items-center gap-4" onClick={() => { setActiveTab('explorer'); setSelectedFile(null); }}>
-            <div className="p-2 bg-hw-primary/10 rounded-lg group-hover:bg-hw-primary/20 transition-all shadow-[0_0_15px_rgba(234,88,12,0.1)]">
-              <Disc className="w-8 h-8 text-hw-primary animate-spin-slow" />
-            </div>
-            <div className="hidden lg:flex flex-col">
-              <span className="text-xl font-black tracking-tighter uppercase italic leading-none">V-Disk</span>
-              <span className="text-[7px] font-bold text-hw-text-dim uppercase tracking-[0.4em] mt-1">LOCAL v1.00</span>
-            </div>
-          </div>
-
-          <nav className="flex-1 px-3 space-y-3">
-            <div className="mb-4 px-3 flex items-center justify-between text-[8px] font-black uppercase text-hw-text-dim tracking-widest">
-              <span className="hidden lg:block">Data.Operations</span>
-              <HardDrive className="w-3 h-3 opacity-30" />
+      <div className="flex flex-col h-screen bg-hw-bg text-hw-text font-mono overflow-hidden">
+        <div className="flex h-full overflow-hidden">
+          <aside className="hidden lg:flex w-64 bg-hw-surface border-r border-hw-border flex-col z-30 shadow-[4px_0_30px_rgba(0,0,0,0.5)]">
+            <div className="p-6 mb-8 cursor-pointer group flex items-center gap-4" onClick={() => { setActiveTab('explorer'); setSelectedFile(null); }}>
+              <div className="p-2 bg-hw-primary/10 rounded-lg group-hover:bg-hw-primary/20 transition-all shadow-[0_0_15px_rgba(234,88,12,0.1)]">
+                <Disc className="w-8 h-8 text-hw-primary animate-spin-slow" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tighter uppercase italic leading-none">V-Disk</span>
+                <span className="text-[7px] font-bold text-hw-text-dim uppercase tracking-[0.4em] mt-1">LOCAL v1.00</span>
+              </div>
             </div>
 
-            {[
-              { id: 'explorer', icon: Grid, label: 'Sector.Explorer' },
-              { id: 'chat', icon: MessageSquare, label: 'Demo Chat' },
-              { id: 'settings', icon: SettingsIcon, label: 'Settings' }
-            ].map(item => (
-              <button 
-                key={item.id}
-                onClick={() => setActiveTab(item.id as any)}
-                className={cn(
-                  "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all relative group",
-                  activeTab === item.id 
-                    ? "bg-hw-primary text-white shadow-[0_0_25px_rgba(234,88,12,0.3)]" 
-                    : "text-hw-text-dim hover:text-white hover:bg-white/5"
-                )}
-              >
-                <item.icon className={cn("w-5 h-5", activeTab === item.id ? "animate-pulse" : "opacity-40 group-hover:opacity-100")} />
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-[0.2em]">{item.label}</span>
-                {activeTab === item.id && (
-                  <motion.div 
-                    layoutId="sidebar-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full" 
-                  />
-                )}
-              </button>
-            ))}
-
-            <div className="pt-6 mt-6 border-t border-hw-border space-y-4">
-              <div className="px-3 hidden lg:block">
-                <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-hw-text-dim mb-3">
-                  <span>Capacity_Used</span>
-                  <span className="text-hw-primary">LOCAL</span>
-                </div>
+            <nav className="flex-1 px-3 space-y-3">
+              <div className="mb-4 px-3 flex items-center justify-between text-[8px] font-black uppercase text-hw-text-dim tracking-widest">
+                <span>Data.Operations</span>
+                <HardDrive className="w-3 h-3 opacity-30" />
               </div>
 
-              <button 
-                onClick={toggleTheme}
-                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all text-hw-text-dim hover:text-white hover:bg-white/5 group"
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5 opacity-40 group-hover:opacity-100" /> : <Moon className="w-5 h-5 opacity-40 group-hover:opacity-100" />}
-                <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-              </button>
-            </div>
-          </nav>
-        </aside>
+              {[
+                { id: 'explorer', icon: Grid, label: 'Sector.Explorer' },
+                { id: 'chat', icon: MessageSquare, label: 'Demo Chat' },
+                { id: 'settings', icon: SettingsIcon, label: 'Settings' }
+              ].map(item => (
+                <button 
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all relative group",
+                    activeTab === item.id 
+                      ? "bg-hw-primary text-white shadow-[0_0_25px_rgba(234,88,12,0.3)]" 
+                      : "text-hw-text-dim hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <item.icon className={cn("w-5 h-5", activeTab === item.id ? "animate-pulse" : "opacity-40 group-hover:opacity-100")} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">{item.label}</span>
+                  {activeTab === item.id && (
+                    <motion.div 
+                      layoutId="sidebar-indicator"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full" 
+                    />
+                  )}
+                </button>
+              ))}
 
-        <main className="flex-1 flex overflow-hidden relative">
-          <div className="absolute inset-0 pointer-events-none opacity-20" 
-               style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(234,88,12,0.05) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-          
-          <div className="flex-1 flex flex-col min-w-0 relative z-10">
-            <AnimatePresence mode="wait">
-              {activeTab === 'explorer' ? (
-                <motion.div 
-                  key="explorer"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="flex-1 overflow-hidden"
+              <div className="pt-6 mt-6 border-t border-hw-border space-y-4">
+                <div className="px-3">
+                  <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-hw-text-dim mb-3">
+                    <span>Capacity_Used</span>
+                    <span className="text-hw-primary">LOCAL</span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={toggleTheme}
+                  className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all text-hw-text-dim hover:text-white hover:bg-white/5 group"
                 >
-                  <FileExplorer onFileSelect={setSelectedFile} />
-                </motion.div>
-              ) : activeTab === 'chat' ? (
-                <motion.div 
-                  key="chat"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 overflow-hidden h-full"
-                >
-                  <DemoChat autoReplyEnabled={settings.autoReplyEnabled} />
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key="settings"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="flex-1 overflow-hidden h-full"
-                >
-                  <Settings 
-                    settings={settings} 
-                    onSettingsChange={setSettings}
-                    onClearStorage={handleClearStorage}
-                  />
-                </motion.div>
+                  {theme === 'dark' ? <Sun className="w-5 h-5 opacity-40 group-hover:opacity-100" /> : <Moon className="w-5 h-5 opacity-40 group-hover:opacity-100" />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+              </div>
+            </nav>
+          </aside>
+
+          <main className="flex-1 flex overflow-hidden relative">
+            <div className="absolute inset-0 pointer-events-none opacity-20" 
+                 style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(234,88,12,0.05) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+            
+            <div className="flex-1 flex flex-col min-w-0 relative z-10 pb-20 lg:pb-0">
+              <AnimatePresence mode="wait">
+                {activeTab === 'explorer' ? (
+                  <motion.div 
+                    key="explorer"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="flex-1 overflow-hidden"
+                  >
+                    <FileExplorer onFileSelect={setSelectedFile} />
+                  </motion.div>
+                ) : activeTab === 'chat' ? (
+                  <motion.div 
+                    key="chat"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="flex-1 overflow-hidden h-full"
+                  >
+                    <DemoChat autoReplyEnabled={settings.autoReplyEnabled} />
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="settings"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="flex-1 overflow-hidden h-full"
+                  >
+                    <Settings 
+                      settings={settings} 
+                      onSettingsChange={setSettings}
+                      onClearStorage={handleClearStorage}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <Footer />
+
+            <AnimatePresence>
+              {selectedFile && (
+                <ImageAnalysis 
+                  file={selectedFile} 
+                  onClose={() => setSelectedFile(null)} 
+                />
               )}
             </AnimatePresence>
+          </main>
+        </div>
+
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+          <div className="bg-hw-surface/95 backdrop-blur-xl border-t border-hw-border shadow-[0_-4px_30px_rgba(0,0,0,0.5)] safe-area-inset-bottom">
+            <div className="flex items-center justify-around px-2 py-2">
+              {[
+                { id: 'explorer', icon: Grid, label: 'Explorer' },
+                { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                { id: 'settings', icon: SettingsIcon, label: 'Settings' }
+              ].map(item => (
+                <button 
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all relative",
+                    activeTab === item.id 
+                      ? "text-orange-400" 
+                      : "text-hw-text-dim"
+                  )}
+                >
+                  <div className={cn(
+                    "p-2 rounded-xl transition-all duration-300",
+                    activeTab === item.id 
+                      ? "bg-orange-500/20 shadow-[0_0_15px_rgba(234,88,12,0.3)]" 
+                      : ""
+                  )}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+                  {activeTab === item.id && (
+                    <motion.div 
+                      layoutId="mobile-nav-indicator"
+                      className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full" 
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
-
-          <Footer />
-
-          <AnimatePresence>
-            {selectedFile && (
-              <ImageAnalysis 
-                file={selectedFile} 
-                onClose={() => setSelectedFile(null)} 
-              />
-            )}
-          </AnimatePresence>
-        </main>
+        </nav>
       </div>
     </ErrorBoundary>
   );

@@ -10,7 +10,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 h-12 md:h-12 bg-hw-surface border-t border-hw-border z-50 px-3 md:px-6 flex items-center justify-between">
+    <footer className="hidden lg:flex fixed bottom-0 left-0 right-0 h-12 md:h-12 bg-hw-surface border-t border-hw-border z-40 px-3 md:px-6 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Disc className="w-4 h-4 text-hw-primary animate-spin-slow" />
         <span className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.2em] text-hw-text-dim hidden sm:block">V-Disk Explorer</span>
