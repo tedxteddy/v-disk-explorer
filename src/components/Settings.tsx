@@ -12,7 +12,13 @@ import {
   Info,
   Database,
   Shuffle,
-  Sparkles
+  Sparkles,
+  Github,
+  Instagram,
+  ExternalLink,
+  Heart,
+  Code,
+  Zap
 } from 'lucide-react';
 import { AppSettings } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -62,20 +68,16 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
 
   const SettingCard = ({ 
     icon: Icon, 
-    iconActive, 
     label, 
     description, 
     enabled, 
     onChange,
-    accentColor = "hw-accent"
   }: { 
     icon: React.ElementType; 
-    iconActive: React.ElementType;
     label: string; 
     description: string; 
     enabled: boolean; 
     onChange: () => void;
-    accentColor?: string;
   }) => (
     <motion.button 
       whileHover={{ scale: 1.02, y: -2 }}
@@ -104,7 +106,7 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
                 exit={{ rotate: 90, scale: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6 text-orange-400")} />
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
               </motion.div>
             ) : (
               <motion.div
@@ -137,6 +139,13 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
     </motion.button>
   );
 
+  const socialLinks = [
+    { icon: Github, href: 'https://github.com/tedxteddy', label: 'GitHub', username: '@tedxteddy' },
+    { icon: Instagram, href: 'https://instagram.com/tedxteddy', label: 'Instagram', username: '@tedxteddy' },
+    { icon: Instagram, href: 'https://instagram.com/designbytedx', label: 'Instagram', username: '@designbytedx' },
+    { icon: ExternalLink, href: 'https://designbytedx.framer.website', label: 'Portfolio', username: 'designbytedx.framer.website' },
+  ];
+
   return (
     <div className="flex flex-col h-full bg-hw-bg text-hw-text font-mono selection:bg-orange-500/30">
       <div className="p-4 sm:p-5 border-b border-hw-border flex items-center justify-between bg-hw-surface-light shadow-[0_4px_20px_rgba(0,0,0,0.3)] z-10 shrink-0">
@@ -168,7 +177,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
           <div className="space-y-3 sm:space-y-4">
             <SettingCard
               icon={EyeOff}
-              iconActive={EyeOff}
               label="Private Mode"
               description="Hide filenames & disable sharing"
               enabled={settings.privateMode}
@@ -176,7 +184,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
             />
             <SettingCard
               icon={Info}
-              iconActive={Info}
               label="Hide Metadata"
               description="Hide size & date info"
               enabled={settings.hideMetadata}
@@ -184,7 +191,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
             />
             <SettingCard
               icon={Database}
-              iconActive={Database}
               label="Cache Mode"
               description="Enable local data caching"
               enabled={settings.cacheEnabled}
@@ -192,7 +198,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
             />
             <SettingCard
               icon={Shuffle}
-              iconActive={Shuffle}
               label="Random Mode"
               description="Random file ordering"
               enabled={settings.randomModeEnabled}
@@ -210,7 +215,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
           <div className="space-y-3 sm:space-y-4">
             <SettingCard
               icon={MessageSquare}
-              iconActive={MessageSquare}
               label="Demo Chat Mode"
               description="Simulated messaging system"
               enabled={settings.demoChatEnabled}
@@ -218,7 +222,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
             />
             <SettingCard
               icon={Bell}
-              iconActive={Bell}
               label="Notification Catch"
               description="Simulate incoming alerts"
               enabled={settings.notificationCatchEnabled}
@@ -226,7 +229,6 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
             />
             <SettingCard
               icon={Bot}
-              iconActive={Bot}
               label="Auto Reply"
               description="Bot auto-responds to messages"
               enabled={settings.autoReplyEnabled}
@@ -274,6 +276,78 @@ export function Settings({ settings, onSettingsChange, onClearStorage }: Setting
               <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="text-xs sm:text-sm font-bold uppercase tracking-wider">Clear All Storage</span>
             </motion.button>
+          </div>
+        </section>
+
+        <section className="space-y-3 sm:space-y-4">
+          <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-purple-400 border-b border-hw-border pb-2">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>About.V-Disk</span>
+          </div>
+
+          <div className="bg-gradient-to-br from-hw-surface to-hw-surface-light border border-hw-border rounded-2xl overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-hw-border bg-black/20">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/30">
+                  <Code className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-white">V-Disk Explorer</h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    <span className="text-[10px] sm:text-xs font-bold text-amber-400 uppercase tracking-wider">Vibe Coded by AI</span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-[11px] sm:text-xs text-hw-text-dim leading-relaxed">
+                A virtual disk explorer built with React, featuring a cyberpunk-inspired design. 
+                Files are stored locally in your browser — no servers, no accounts, just pure vibes.
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-4">
+              <div>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-hw-text-dim mb-2 block">Creator</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                    <span className="text-lg font-black text-white">T</span>
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-white">Tashmoi Dey</span>
+                    <span className="block text-[10px] sm:text-xs text-hw-text-dim">@designbytedx</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-hw-text-dim mb-2 block">Connect</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {socialLinks.map((link, i) => (
+                    <a
+                      key={i}
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2.5 bg-black/30 border border-hw-border rounded-xl hover:border-orange-500/50 hover:bg-orange-500/10 transition-all group"
+                    >
+                      <link.icon className="w-4 h-4 text-hw-text-dim group-hover:text-orange-400 transition-colors" />
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-bold text-white truncate">{link.label}</span>
+                        <span className="block text-[8px] sm:text-[9px] text-hw-text-dim truncate">{link.username}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+              <div className="flex items-center justify-center gap-2 py-3 bg-black/20 rounded-xl">
+                <span className="text-[10px] sm:text-xs text-hw-text-dim">Made with</span>
+                <Heart className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+                <span className="text-[10px] sm:text-xs text-hw-text-dim">by a designer who codes</span>
+              </div>
+            </div>
           </div>
         </section>
 
